@@ -1,52 +1,60 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/taufiksty/to-do-list-app-text/entity"
-	"github.com/taufiksty/to-do-list-app-text/repository"
+	"github.com/taufiksty/to-do-list-app-text/repository/mysql"
 )
 
 type TaskService struct {
-	Repository repository.TaskRepository
+	Repository mysql.TaskRepository
 }
 
-func (service TaskService) GetAll() ([]*entity.Task, error) {
-	tasks := service.Repository.FindAll()
+func (service TaskService) GetAll() ([]entity.Task, error) {
+	ctx := context.Background()
 
-	if tasks == nil {
+	tasks, err := service.Repository.FindAll(ctx)
+
+	if err != nil {
 		return tasks, errors.New("unfortunately, task not found")
 	} else {
 		return tasks, nil
 	}
 }
 
-func (service TaskService) AddTask(task *entity.Task) (*entity.Task, error) {
-	newTask := service.Repository.Create(task)
+func (service TaskService) AddTask(task entity.Task) (entity.Task, error) {
+	ctx := context.Background()
 
-	if newTask == nil {
+	newTask, err := service.Repository.Create(ctx, task)
+	if err != nil {
 		return newTask, errors.New("unfortunately, task not created")
 	} else {
 		return newTask, nil
 	}
 }
 
-func (service TaskService) UpdateTask(id int, task *entity.Task) (*entity.Task, error) {
-	updatedTask := service.Repository.Update(id, task)
+func (service TaskService) UpdateTask(id int, task entity.Task) (entity.Task, error) {
+	ctx := context.Background()
 
-	if updatedTask == nil {
+	updatedTask, err := service.Repository.Update(ctx, id, task)
+
+	if err != nil {
 		return updatedTask, errors.New("unfortunately, update task fail")
 	} else {
 		return updatedTask, nil
 	}
 }
 
-func (service TaskService) DestroyTask(id int) (*entity.Task, error) {
-	deletedTask := service.Repository.Delete(id)
+func (service TaskService) DestroyTask(id int) (bool, error) {
+	ctx := context.Background()
 
-	if deletedTask == nil {
-		return deletedTask, errors.New("unfortunately, delete task fail")
+	err := service.Repository.Delete(ctx, id)
+
+	if err == nil {
+		return false, errors.New("unfortunately, delete task fail")
 	} else {
-		return deletedTask, nil
+		return true, nil
 	}
 }

@@ -7,8 +7,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/taufiksty/to-do-list-app-text/database"
 	"github.com/taufiksty/to-do-list-app-text/entity"
-	"github.com/taufiksty/to-do-list-app-text/repository"
+	"github.com/taufiksty/to-do-list-app-text/repository/mysql"
 	"github.com/taufiksty/to-do-list-app-text/service"
 )
 
@@ -19,16 +20,16 @@ func clearTerminal() {
 	cmd.Run()
 }
 
-func listToDo(tasks []*entity.Task) {
+func listToDo(tasks []entity.Task) {
 	fmt.Println("Daftar Tugas : ")
-	for i, task := range tasks {
+	for _, task := range tasks {
 		status := "Belum selesai"
 
 		if task.Done {
 			status = "Selesai"
 		}
 
-		fmt.Printf("%d. %s - %s [%s]\n", i+1, task.Title, task.Description, status)
+		fmt.Printf("%d. %s - %s [%s]\n", task.Id, task.Title, task.Description, status)
 	}
 }
 
@@ -71,7 +72,7 @@ func menu() {
 }
 
 func main() {
-	repo := repository.InitInMemoryTaskRepository()
+	repo := mysql.NewTaskRepository(database.GetConnection())
 
 	taskService := service.TaskService{Repository: repo}
 
@@ -99,7 +100,7 @@ func main() {
 		if menuOption == 1 {
 			title, description, done := inputToDo()
 
-			newTask := &entity.Task{
+			newTask := entity.Task{
 				Title:       title,
 				Description: description,
 				Done:        done,
@@ -121,7 +122,7 @@ func main() {
 
 			title, description, done := inputToDo()
 
-			updatedTask := &entity.Task{
+			updatedTask := entity.Task{
 				Title:       title,
 				Description: description,
 				Done:        done,
